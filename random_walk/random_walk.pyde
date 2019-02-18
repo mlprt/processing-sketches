@@ -1,41 +1,37 @@
 #add_library('pdf')
 add_library('svg')
 #import array
-#import math
+import math
 
-frames = 100
-amp = 1  # size of random walk steps in pixel space
-ampc = 0.05  # size of random walk steps in color space
+frames = 2000
+#amp = 1  # size of random walk steps in pixel space
+#ampc = 0.05  # size of random walk steps in color space
 driftc = 0 #.0001
-bgc = 255 # background color
+#bgc = 255 # background color
 c_init = [240, 240, 240, 15]  # initial color
 c_mod = [256, 256, 256, 256]
-steps = 1000000
+#steps = 1000000
 disp_step = 2500
 stroke_weight = 5
-bgc = 50
 display = False
-outfile_path = './out/m{}.tif' 
-
-
-color_moves = ((-ampc, 0, 0), (ampc, 0, 0), 
-               (0, -ampc, 0), (0, ampc, 0), 
-               (0, 0, -ampc), (0, 0, ampc))
+outfile_path = '/mnt/store/processing/{}.tif' 
 
 blend_modes = {"difference": DIFFERENCE, "subtract": SUBTRACT, "add": ADD, 
                "blend": BLEND, "darkest": DARKEST, "lightest": LIGHTEST, 
                "exclusion": EXCLUSION, "multiply": MULTIPLY, 
                "screen": SCREEN, "replace": REPLACE}
 
+def radial_move(theta, r=1):
+    return (r * cos(theta), r * sin(theta))
+
 def setup():
     global x, y, c, frame
-    size(1920, 1080)#, SVG, outfile_path)
+    #fullScreen(P2D, 2)
+    size(1920, 1080, P2D)#, SVG, outfile_path)
     #blendMode(DIFFERENCE)
     frameRate(60)
-    #beginRecord(PDF, outfile_path)
     
-    strokeWeight(stroke_weight)
-    
+    #strokeWeight(stroke_weight)
 
     frame = 0
 
@@ -54,10 +50,24 @@ def draw():
     c[-1] = int(random(25) + 1)
     stroke_weight = int(random(2) + 1)
     
-    amp = [2, 3, 5, 10, 15][int(random(5))]
+    amp = [1, 2, 3, 5, 10, 15, 30][int(random(7))]
     ampc = random(1) ** 3
     
-    moves = ((-amp, 0), (amp, 0), (0, -amp), (0, amp))
+    steps = [250, 1000, 10000, 100000, 500000, 1000000, 2500000][int(random(7))]
+    
+    if amp < 3 and steps < 500000:
+        steps = 500000
+        
+    if amp > 3 and steps > 100000:
+        steps = 100000
+    
+    #moves = ((-amp, 0), (amp, 0), (0, -amp), (0, amp))
+    
+    #directions = 90
+    directions = [3, 4, 5, 6, 12, 64, 90, 360][int(random(8))]
+    
+    moves = [radial_move(2 * math.pi * th / directions, r=amp) for th in range(directions)]  
+    
     color_moves = [((-ampc + driftc, 0, 0, 0), (ampc + driftc, 0, 0, 0)), 
                    ((0, -ampc + driftc, 0, 0), (0, ampc + driftc, 0, 0)),
                    #(0, 0, 0, -ampc), (0, 0, 0, ampc),
@@ -72,6 +82,7 @@ def draw():
         move = moves[move_idx]
         x0, y0 = x, y
         
+        #amp = int(random(5) + 1)
         x = (x + move[0]) % width
         y = (y + move[1]) % height
         
@@ -88,8 +99,8 @@ def draw():
     
     save(outfile_path.format(frame))
     
-    with open('./out/list.csv', 'a') as f:
-        f.write(','.join([blend_mode_key, str(amp), str(c[-1]), str(ampc), str(stroke_weight), str(bgc), '\n']))
+    with open('/mnt/store/processing/list.csv', 'a') as f:
+        f.write(','.join([blend_mode_key, str(steps), str(directions), str(c[-1]), str(amp), str(ampc), str(stroke_weight), str(bgc), '\n']))
     frame += 1
     
     if frame == frames:
