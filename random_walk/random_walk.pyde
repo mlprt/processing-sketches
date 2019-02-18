@@ -25,27 +25,27 @@ def radial_move(theta, r=1):
     return (r * cos(theta), r * sin(theta))
 
 def setup():
-    global x, y, c, frame
-    #fullScreen(P2D, 2)
+    global x, y, c, frame, pg
+    
     size(1920, 1080, P2D)#, SVG, outfile_path)
+    pg = createGraphics(1920, 1080, P2D)
+    
     #blendMode(DIFFERENCE)
     frameRate(60)
-    
     #strokeWeight(stroke_weight)
 
     frame = 0
 
 def draw():
-    global frame
+    global x, y, c, frame, pg
     
     blend_mode_key = blend_modes.keys()[int(random(len(blend_modes)))]
     blendMode(blend_modes[blend_mode_key])
     
     bgc = int(random(256))
-    background(bgc)
     
-    x = int(width * random(1))
-    y = int(height * random(1))
+    x = int(pg.width * random(1))
+    y = int(pg.height * random(1))
     c = list(c_init)  
     c[-1] = int(random(25) + 1)
     stroke_weight = int(random(2) + 1)
@@ -76,6 +76,11 @@ def draw():
     exclude = 'None' #int(random(3))
     #del color_moves[exclude]
     color_moves = [move for group in color_moves for move in group]
+    
+    pg.beginDraw()
+    pg.background(bgc)
+    pg.strokeWeight(stroke_weight)
+    pg.endDraw()
 
     for _ in range(steps):
         move_idx = int(random(len(moves)))
@@ -83,28 +88,29 @@ def draw():
         x0, y0 = x, y
         
         #amp = int(random(5) + 1)
-        x = (x + move[0]) % width
-        y = (y + move[1]) % height
+        x = (x + move[0]) % pg.width
+        y = (y + move[1]) % pg.height
         
         color_move = color_moves[int(random(len(color_moves)))]
         c = [(c[i] + color_move[i]) % c_mod[i] for i in range(len(c))]
-        
-        stroke(*[int(i) for i in c])
-        strokeWeight(stroke_weight)
+    
+
         
         if abs(x - x0) <= amp and abs(y - y0) <= amp:
-            line(x0, y0, x, y)    
+            pg.beginDraw()
+            pg.stroke(*[int(i) for i in c])
+            pg.line(x0, y0, x, y)
+            pg.endDraw()    
         if not _ % 100000:
             print(_)
-    
-    save(outfile_path.format(frame))
-    
+
+    image(pg, 0, 0)
+    save(outfile_path.format(frame))      
     with open('/mnt/store/processing/list.csv', 'a') as f:
         f.write(','.join([blend_mode_key, str(steps), str(directions), str(c[-1]), str(amp), str(ampc), str(stroke_weight), str(bgc), '\n']))
     frame += 1
     
     if frame == frames:
         exit()
-
-    #print(c)    
+ 
     #print('{} fps'.format(frameRate))
