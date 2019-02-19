@@ -3,7 +3,7 @@ add_library('svg')
 #import array
 import math
 
-frames = 2000
+frames = 4000
 #amp = 1  # size of random walk steps in pixel space
 #ampc = 0.05  # size of random walk steps in color space
 driftc = 0 #.0001
@@ -52,22 +52,23 @@ def draw():
     
     amp = [1, 2, 3, 5, 10, 15, 30][int(random(7))]
     ampc = random(1) ** 3
-    
-    steps = [500, 1000, 10000, 50000, 100000, 250000, 500000, 1000000, 2500000][int(random(9))]
-    
-    if amp < 2 and steps < 500000:
-        steps = 500000
         
-    if amp > 3 and steps > 250000:
-        steps = 250000
+    if amp > 10:
+        steps = [500, 1000, 10000, 50000][int(random(4))]
         
-    if amp > 10 and steps > 50000:
-        steps = 50000
+    elif amp > 3:
+        steps = [1000, 10000, 50000, 100000, 250000][int(random(5))]
     
-    #moves = ((-amp, 0), (amp, 0), (0, -amp), (0, amp))
+    elif amp > 1:
+        steps = [10000, 50000, 100000, 250000, 500000][int(random(5))]
+        
+    else:
+        steps = [250000, 500000, 1000000, 2500000][int(random(4))]
     
     #directions = 90
     directions = [3, 4, 5, 6, 12, 64, 90, 360][int(random(8))]
+    if amp > 10 and directions > 6:
+        directions = 6
     
     moves = [radial_move(2 * math.pi * th / directions, r=amp) for th in range(directions)]  
     
